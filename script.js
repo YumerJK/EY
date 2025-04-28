@@ -1,3 +1,19 @@
+const dogumGunuMuzigi = document.getElementById('dogum-gunu-muzigi');
+
+// Müzik dosyasını başlatma fonksiyonu
+function playBirthdayMusic() {
+  // Bazı tarayıcılar otomatik ses oynatmayı engeller, bu yüzden burada basit bir kontrol yapıyoruz.
+  dogumGunuMuzigi.play().catch(err => {
+    console.log("Müzik oynatılamadı:", err);
+  });
+}
+
+// Sayfa tamamen yüklendikten sonra müzik başlat
+window.addEventListener('load', () => {
+  playBirthdayMusic();
+  animate();
+});
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
@@ -15,7 +31,6 @@ const letters = [];
 const stars = [];
 const planets = [];
 const message = "DOĞUM GÜNÜN KUTLU OLSUN";
-const finalMessage = "SENİ ÇÖPTEN BULALI 14 YIL OLDU :)";  // 15. patlamada gösterilecek mesaj
 
 const opts = {
   fireworkInterval: 2000,
@@ -26,23 +41,22 @@ const opts = {
 let lastFirework = 0;
 let fireworkCount = 0;
 const maxFireworks = 15;
-let finalMessageTriggered = false;  // 15. patlama kontrolü için
 
-// Yıldızlar (Daha fazla yıldız ekleyelim)
-for (let i = 0; i < 300; i++) {  // Yıldız sayısını artırdım
+// Yıldızlar
+for (let i = 0; i < 200; i++) {
   stars.push({
     x: Math.random() * cw,
     y: Math.random() * ch,
-    radius: Math.random() * 2.5,  // Yıldızların boyutunu artırdım
+    radius: Math.random() * 1.5,
     alpha: Math.random(),
     delta: (Math.random() * 0.02) + 0.005
   });
 }
 
 // Gezegenler
-planets.push({ x: cw * 0.3, y: ch * 0.3, radius: 50, angle: 0, speed: 0.01, color: 'cyan' });
-planets.push({ x: cw * 0.7, y: ch * 0.5, radius: 40, angle: 0.015, speed: 0.015, color: 'pink' });
-planets.push({ x: cw * 0.5, y: ch * 0.7, radius: 60, angle: 0.008, speed: 0.008, color: 'orange' });
+planets.push({ x: cw * 0.3, y: ch * 0.3, radius: 40, angle: 0, speed: 0.01, color: 'cyan' });
+planets.push({ x: cw * 0.7, y: ch * 0.5, radius: 30, angle: 0.015, speed: 0.015, color: 'pink' });
+planets.push({ x: cw * 0.5, y: ch * 0.7, radius: 50, angle: 0.008, speed: 0.008, color: 'orange' });
 
 class Firework {
   constructor(x) {
@@ -112,7 +126,7 @@ class Letter {
     this.y = y;
     this.char = char;
     this.color = randomColor();
-    this.size = 50;  // Yazı boyutunu 50px yaptık
+    this.size = Math.random() * 20 + 30;
     this.vx = (Math.random() - 0.5) * 2;
     this.vy = Math.random() * 1 + 1;
     this.alpha = 1;
@@ -128,7 +142,7 @@ class Letter {
   draw() {
     ctx.globalAlpha = this.alpha;
     ctx.fillStyle = this.color;
-    ctx.font = `bold ${this.size}px Arial`;  // Yazı boyutunu değiştirdik
+    ctx.font = `bold ${this.size}px Arial`;
     ctx.fillText(this.char, this.x, this.y);
     ctx.globalAlpha = 1;
   }
@@ -218,21 +232,5 @@ function animate(timestamp) {
     }
   }
 
-  // 15. patlama yazısı ve büyüme efekti
-  if (fireworkCount === maxFireworks && !finalMessageTriggered) {
-    finalMessageTriggered = true;
-    createLetters(cw / 2, ch / 2); // Final mesajını başlat
-  }
-
-  // Final mesajı büyümesi ve ekrana sığması
-  if (finalMessageTriggered) {
-    const fontSize = Math.min(Math.min(cw, ch) / finalMessage.length, 300);  // Yazı boyutunu ekrana sığdırıyoruz
-    ctx.fillStyle = "white";
-    ctx.font = `bold ${fontSize}px Arial`;
-    ctx.fillText(finalMessage, cw / 2 - ctx.measureText(finalMessage).width / 2, ch / 2);
-  }
-
   requestAnimationFrame(animate);
 }
-
-animate();
