@@ -1,19 +1,3 @@
-const dogumGunuMuzigi = document.getElementById('dogum-gunu-muzigi');
-
-// Müzik dosyasını başlatma fonksiyonu
-function playBirthdayMusic() {
-  // Bazı tarayıcılar otomatik ses oynatmayı engeller, bu yüzden burada basit bir kontrol yapıyoruz.
-  dogumGunuMuzigi.play().catch(err => {
-    console.log("Müzik oynatılamadı:", err);
-  });
-}
-
-// Sayfa tamamen yüklendikten sonra müzik başlat
-window.addEventListener('load', () => {
-  playBirthdayMusic();
-  animate();
-});
-
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
@@ -31,6 +15,7 @@ const letters = [];
 const stars = [];
 const planets = [];
 const message = "DOĞUM GÜNÜN KUTLU OLSUN";
+const finalMessage = "DOĞUM GÜNÜN KUTLU OLSUN 🖤";
 
 const opts = {
   fireworkInterval: 2000,
@@ -41,9 +26,11 @@ const opts = {
 let lastFirework = 0;
 let fireworkCount = 0;
 const maxFireworks = 15;
+let finalTextShown = false;
+let finalFontSize = 40;
 
 // Yıldızlar
-for (let i = 0; i < 200; i++) {
+for (let i = 0; i < 300; i++) {
   stars.push({
     x: Math.random() * cw,
     y: Math.random() * ch,
@@ -54,9 +41,9 @@ for (let i = 0; i < 200; i++) {
 }
 
 // Gezegenler
-planets.push({ x: cw * 0.3, y: ch * 0.3, radius: 40, angle: 0, speed: 0.01, color: 'cyan' });
-planets.push({ x: cw * 0.7, y: ch * 0.5, radius: 30, angle: 0.015, speed: 0.015, color: 'pink' });
-planets.push({ x: cw * 0.5, y: ch * 0.7, radius: 50, angle: 0.008, speed: 0.008, color: 'orange' });
+planets.push({ x: cw * 0.3, y: ch * 0.3, radius: 50, angle: 0, speed: 0.01, color: 'cyan' });
+planets.push({ x: cw * 0.7, y: ch * 0.5, radius: 40, angle: 0.015, speed: 0.015, color: 'pink' });
+planets.push({ x: cw * 0.5, y: ch * 0.7, radius: 60, angle: 0.008, speed: 0.008, color: 'orange' });
 
 class Firework {
   constructor(x) {
@@ -81,6 +68,9 @@ class Firework {
     this.exploded = true;
     createParticles(this.x, this.y);
     createLetters(this.x, this.y);
+    if (fireworkCount === maxFireworks) {
+      finalTextShown = true;
+    }
   }
 
   draw() {
@@ -126,17 +116,21 @@ class Letter {
     this.y = y;
     this.char = char;
     this.color = randomColor();
-    this.size = Math.random() * 20 + 30;
+    this.size = Math.random() * 10 + 40;
     this.vx = (Math.random() - 0.5) * 2;
     this.vy = Math.random() * 1 + 1;
     this.alpha = 1;
+    this.lifetime = 60;
   }
 
   update() {
     this.x += this.vx;
     this.y += this.vy;
     this.vy += 0.05;
-    this.alpha -= 0.002;
+    this.lifetime--;
+    if (this.lifetime <= 0) {
+      this.alpha -= 0.02;
+    }
   }
 
   draw() {
@@ -151,7 +145,6 @@ class Letter {
 function createLetters(x, y) {
   const spacing = 35;
   const startX = x - (message.length * spacing) / 2;
-
   for (let i = 0; i < message.length; i++) {
     letters.push(new Letter(startX + i * spacing, y, message[i]));
   }
@@ -171,7 +164,6 @@ function drawStars() {
   stars.forEach(star => {
     star.alpha += star.delta;
     if (star.alpha <= 0 || star.alpha >= 1) star.delta *= -1;
-
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
@@ -185,12 +177,20 @@ function drawPlanets() {
     const orbitRadius = 30;
     const offsetX = Math.cos(planet.angle) * orbitRadius;
     const offsetY = Math.sin(planet.angle) * orbitRadius;
-
     ctx.beginPath();
     ctx.arc(planet.x + offsetX, planet.y + offsetY, planet.radius, 0, Math.PI * 2);
     ctx.fillStyle = planet.color;
     ctx.fill();
   });
+}
+
+function drawFinalMessage() {
+  if (finalTextShown) {
+    ctx.fillStyle = "white";
+    ctx.font = `bold 50px Arial`;
+    ctx.textAlign = "center";
+    ctx.fillText(finalMessage, cw / 2, ch / 2);
+  }
 }
 
 function animate(timestamp) {
@@ -218,19 +218,19 @@ function animate(timestamp) {
     const p = particles[i];
     p.update();
     p.draw();
-    if (p.alpha <= 0) {
-      particles.splice(i, 1);
-    }
+    if (p.alpha <= 0) particles.splice(i, 1);
   }
 
   for (let i = letters.length - 1; i >= 0; i--) {
     const l = letters[i];
     l.update();
     l.draw();
-    if (l.alpha <= 0) {
-      letters.splice(i, 1);
-    }
+    if (l.alpha <= 0) letters.splice(i, 1);
   }
+
+  drawFinalMessage();
 
   requestAnimationFrame(animate);
 }
+
+animate();
